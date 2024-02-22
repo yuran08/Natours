@@ -4,5 +4,17 @@
   "proseWrap": "always",
   "singleAttributePerLine": true,
   "semi": false,
-  "printWidth": 80
+  "printWidth": 80,
+  "bracketSpacing": true,
+  "parser": "babylon",
+  "requireConfig": false,
+  "tslintIntegration": false,
+  "overrides": [
+    {
+      "files": ".prettierrc",
+      "options":{
+        "parser": "json"
+      }
+    }
+  ]
 }

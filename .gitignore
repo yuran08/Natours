@@ -1,1 +1,4 @@
 node_modules
+dist
+dev-data
+package-lock.json

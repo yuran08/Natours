@@ -1,7 +1,23 @@
 import Tour from '../models/tourModel.js'
-import { Request, Response } from 'express-serve-static-core'
 import Query from '../utils/query.js'
+import { NextFunction, Request, Response, RequestHandler } from 'express'
 
+// middleware
+
+export const aliasPerformTour: RequestHandler = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  req.query.limit = '5'
+  req.query.sort = '-ratingsAverage,price'
+  req.query.fields 
+  =
+    'name,duration,ratingsAverage,ratingsQuantity,difficulty,price,maxGroupSize'
+  next()
+}
+
+// controller
 export const getAllTour = async (req: Request, res: Response) => {
   try {
     const query = new Query(Tour.find(), req.query)

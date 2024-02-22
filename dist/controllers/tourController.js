@@ -1,5 +1,15 @@
 import Tour from '../models/tourModel.js';
 import Query from '../utils/query.js';
+// middleware
+export const aliasPerformTour = (req, res, next) => {
+    req.query.limit = '5';
+    req.query.sort = '-ratingsAverage,price';
+    req.query.fields
+        =
+            'name,duration,ratingsAverage,ratingsQuantity,difficulty,price,maxGroupSize';
+    next();
+};
+// controller
 export const getAllTour = async (req, res) => {
     try {
         const query = new Query(Tour.find(), req.query)
