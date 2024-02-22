@@ -4,8 +4,7 @@ import {
   createTour,
   getTour,
   updateTour,
-  deleteTour,
-  aliasPerformTour,
+  deleteTour,aliasPerformTour,
 } from '../controllers/tourController.js'
 import { Router } from 'express-serve-static-core'
 
