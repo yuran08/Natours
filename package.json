@@ -1,0 +1,41 @@
+{
+  "name": "natours",
+  "version": "1.0.0",
+  "description": "node bootcamp",
+  "type": "module",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon dist/service.js",
+    "start:prod": "NODE_ENV=production nodemon service.js",
+    "tsc": "tsc --watch",
+    "prettier": "npx onchange \"**\" -- prettier --write --ignore-unknown {{changed}}",
+    "import": "node dist/dev-data/data/import-dev-data.js --import",
+    "delete": "node dist/dev-data/data/import-dev-data.js --delete"
+  },
+  "author": "yu_ran",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "mongoose": "^5.13.22",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/mongoose": "^5.11.97",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^20.11.16",
+    "eslint": "^8.56.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "^3.2.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
