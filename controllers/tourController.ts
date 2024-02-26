@@ -1,6 +1,8 @@
 import Tour from '../models/tourModel.js'
 import Query from '../utils/query.js'
 import { NextFunction, Request, Response, RequestHandler } from 'express'
+import catchError from '../utils/catchError.js'
+import { AppError } from '../types/error.js'
 
 // middleware
 export const aliasPerformTour: RequestHandler = (
@@ -86,51 +88,73 @@ export const updateTour = async (req: Request, res: Response) => {
   }
 }
 
-export const deleteTour = async (req: Request, res: Response) => {
-  try {
-    const tour = await Tour.findByIdAndDelete(req.params.id)
-    if (!tour) {
-      throw new Error('unexist tour !')
-    }
-
-    res.status(200).json({
-      status: 'success',
-    })
-  } catch (error) {
-    if (error instanceof Error) {
-      res.status(400).json({
-        status: 'fail',
-        message: error.message,
-      })
-    }
+export const deleteTour = catchError(async (req, res) => {
+  const tour = await Tour.findByIdAndDelete(req.params.id)
+  if (!tour) {
+    throw new AppError(0, 'unexist tour!')
   }
-}
 
-export const getTourStatus = async (req: Request, res: Response) => {
-  try {
-    const status = await Tour.aggregate([
-      {
-        $match: { ratingsAverage: { $gte: 4.5 } },
+  res.status(200).json({
+    status: 'success',
+  })
+})
+
+export const getTourStatus = catchError(async (req: Request, res: Response) => {
+  const status = await Tour.aggregate([
+    {
+      $match: { ratingsAverage: { $gte: 4.5 } },
+    },
+    {
+      $group: {
+        _id: { $toUpper: '$difficulty' },
+        avgRating: { $avg: '$ratingsAverage' },
+        avgPrice: { $avg: '$price' },
+        minPrice: { $min: '$price' },
+        maxPrice: { $max: '$price' },
       },
-      {
-        $group: {
-          _id: null,
-          avgRating: { $avg: '$ratingsAverage' },
-          avgPrice: { $avg: '$price' },
-          minPrice: { $min: '$price' },
-          maxPrice: { $max: '$price' },
+    },
+  ])
+
+  res.status(200).json({
+    status: 'success',
+    data: status,
+  })
+})
+
+export const getMonthlyPlan = catchError(async (req, res) => {
+  const year = Number(req.params.year)
+
+  const plan = await Tour.aggregate([
+    {
+      $unwind: '$startDates',
+    },
+    {
+      $match: {
+        startDates: {
+          $gte: new Date(`${year}-01-01`),
+          $lte: new Date(`${year}-12-31`),
         },
       },
-    ])
-
-    res.status(200).json({
-      status: 'success',
-      data: status,
-    })
-  } catch (error) {
-    res.status(400).json({
-      status: 'fail',
-      message: error,
-    })
-  }
-}
+    },
+    {
+      $group: {
+        _id: { $month: '$startDates' },
+        tourCount: { $sum: 1 },
+        tours: { $push: '$name' },
+      },
+    },
+    {
+      $addFields: { month: '$_id' },
+    },
+    {
+      $project: { _id: 0 },
+    },
+    {
+      $sort: { month: 1 },
+    },
+  ])
+  res.status(200).json({
+    status: 'success',
+    data: plan,
+  })
+})
