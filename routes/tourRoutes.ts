@@ -4,11 +4,14 @@ import {
   createTour,
   getTour,
   updateTour,
-  deleteTour,aliasPerformTour,
+  deleteTour,
+  aliasPerformTour,
+  getTourStatus,
 } from '../controllers/tourController.js'
 import { Router } from 'express-serve-static-core'
 
 const tourRouter: Router = express.Router()
+tourRouter.route('/tourStatus').get(getTourStatus)
 tourRouter.route('/top-5-perform').get(aliasPerformTour, getAllTour)
 
 tourRouter.route('/').get(getAllTour).post(createTour)

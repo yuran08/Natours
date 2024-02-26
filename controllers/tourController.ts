@@ -3,7 +3,6 @@ import Query from '../utils/query.js'
 import { NextFunction, Request, Response, RequestHandler } from 'express'
 
 // middleware
-
 export const aliasPerformTour: RequestHandler = (
   req: Request,
   res: Response,
@@ -11,8 +10,7 @@ export const aliasPerformTour: RequestHandler = (
 ) => {
   req.query.limit = '5'
   req.query.sort = '-ratingsAverage,price'
-  req.query.fields 
-  =
+  req.query.fields =
     'name,duration,ratingsAverage,ratingsQuantity,difficulty,price,maxGroupSize'
   next()
 }
@@ -97,6 +95,37 @@ export const deleteTour = async (req: Request, res: Response) => {
 
     res.status(200).json({
       status: 'success',
+    })
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(400).json({
+        status: 'fail',
+        message: error.message,
+      })
+    }
+  }
+}
+
+export const getTourStatus = async (req: Request, res: Response) => {
+  try {
+    const status = await Tour.aggregate([
+      {
+        $match: { ratingsAverage: { $gte: 4.5 } },
+      },
+      {
+        $group: {
+          _id: null,
+          avgRating: { $avg: '$ratingsAverage' },
+          avgPrice: { $avg: '$price' },
+          minPrice: { $min: '$price' },
+          maxPrice: { $max: '$price' },
+        },
+      },
+    ])
+
+    res.status(200).json({
+      status: 'success',
+      data: status,
     })
   } catch (error) {
     res.status(400).json({

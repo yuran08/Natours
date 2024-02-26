@@ -5,7 +5,7 @@ import tourRouter from './routes/tourRoutes.js'
 
 dotenv.config({ path: './config.env' })
 
-const app = express()
+const app: express.Application = express()
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'))

@@ -8,7 +8,7 @@
     "baseUrl": ".",
     "jsx": "react",
     "allowSyntheticDefaultImports": true,
-    "moduleResolution": "Node",
+    "moduleResolution": "node",
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,
     "suppressImplicitAnyIndexErrors": false,
@@ -18,8 +18,12 @@
     "checkJs": true,
     "skipLibCheck": true,
     "experimentalDecorators": true,
+    "esModuleInterop": true,
     "strict": true
   },
   "include": ["*", "dev-data", "dev-data/data"],
-  "exclude": ["node_modules", "build", "dist"]
+  "exclude": ["node_modules", "build", "dist"],
+  "ts-node": {
+    "esm": true
+  }
 }

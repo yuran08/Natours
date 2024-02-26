@@ -5,7 +5,8 @@
   "type": "module",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon dist/service.js",
+    "test": "nodemon dist/service.js",
+    "start": "nodemon --watch '*' -e ts --exec ts-node service.ts",
     "start:prod": "NODE_ENV=production nodemon service.js",
     "tsc": "tsc --watch",
     "prettier": "npx onchange \"**\" -- prettier --write --ignore-unknown {{changed}}",
@@ -36,6 +37,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "prettier": "^3.2.2",
     "ts-node": "^10.9.2",
+    "tslint": "^6.1.3",
     "typescript": "^5.3.3"
   }
 }
