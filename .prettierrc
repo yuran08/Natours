@@ -4,7 +4,7 @@
   "proseWrap": "always",
   "singleAttributePerLine": true,
   "semi": false,
-  "printWidth": 80,
+  "printWidth": 100,
   "bracketSpacing": true,
   "overrides": [
     {

@@ -1,6 +1,13 @@
-import mongoose, { Model, SchemaTypeOptions, QueryWithHelpers } from 'mongoose'
+import mongoose, {
+  Model,
+  SchemaTypeOptions,
+  QueryWithHelpers,
+  HookNextFunction,
+  Aggregate,
+} from 'mongoose'
+import slugify from 'slugify'
+import validator from 'validator'
 const { Schema, model } = mongoose
-// import { model } from 'mongoose'
 interface ITour {
   name: string
   price: number
@@ -15,9 +22,9 @@ interface ITour {
   images: string[]
   startDates: Date[]
   createAt: Date
+  slug: string
+  secretTour: boolean
 }
-
-// interface TourModel extends Model<ITour> {}
 
 const tourSchema = new Schema<ITour, Model<ITour>, SchemaTypeOptions<any>>(
   {
@@ -25,13 +32,21 @@ const tourSchema = new Schema<ITour, Model<ITour>, SchemaTypeOptions<any>>(
       type: String,
       required: [true, 'A tour must have name'],
       unique: true,
+      // validate: [validator.isAlpha, 'Tour name must only contain characters'],
     },
+    slug: String,
     price: {
       type: Number,
       required: [true, 'A tour must have price'],
     },
     priceDiscount: {
       type: Number,
+      validate: {
+        validator: function (this: ITour, value: number) {
+          return value < this.price
+        },
+        message: 'Discount price ({VALUE}) should be below regular price',
+      },
     },
     difficulty: {
       type: String,
@@ -82,6 +97,10 @@ const tourSchema = new Schema<ITour, Model<ITour>, SchemaTypeOptions<any>>(
       type: [Date],
       default: Date.now(),
     },
+    secretTour: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     toJSON: { virtuals: true },
@@ -92,9 +111,31 @@ tourSchema.virtual('durationWeeks').get(function (this: ITour) {
   return (this.duration / 7).toFixed(2)
 })
 
-const Tour = model<ITour, Model<ITour, SchemaTypeOptions<any>>>(
-  'Tour',
-  tourSchema,
-)
+tourSchema.pre('save', function (next: HookNextFunction) {
+  this.slug = slugify(this.name, { lower: true })
+  next()
+})
+
+tourSchema.pre(/^find/, function (this: QueryWithHelpers<any, any>, next: HookNextFunction) {
+  this.find({ secretTour: { $ne: true } })
+  next()
+})
+
+tourSchema.post(/^find/, function (docs, next: HookNextFunction) {
+  console.log(docs)
+  next()
+})
+
+tourSchema.pre('aggregate', function (this: Aggregate<Object>, next: HookNextFunction) {
+  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } })
+  next()
+})
+
+tourSchema.post('aggregate', function (docs, next: HookNextFunction) {
+  console.log(docs)
+  next()
+})
+
+const Tour = model<ITour, Model<ITour>, SchemaTypeOptions<any>>('Tour', tourSchema)
 
 export default Tour
