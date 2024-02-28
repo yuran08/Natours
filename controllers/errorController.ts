@@ -7,8 +7,34 @@ export const requestUrlError = (
   res: Response,
   next: NextFunction,
 ) => {
-  const err = new AppError(StatusCodes.NOT_FOUND, 'unvalid url')
+  const err = new AppError(StatusCodes.NOT_FOUND, `Invalid url: ${req.url} .`)
   next(err)
+}
+
+const handleCastErrorDB = (err: AppError) => {
+  const message = `Invalid ${err.path}: ${err.value}.`
+  return new AppError(400, message)
+}
+
+const handleValidationErrorDB = (err: AppError) => {
+  const errors = Object.values(err.errors).map((el: any) => el.message)
+  const message = `Invalid input data. ${errors.join('. ')}`
+  return new AppError(400, message)
+}
+
+const sendError = (err: AppError, res: Response) => {
+  if (err.isOperational) {
+    res.status(err.status).json({
+      status: err.hasOwnProperty('status') ? 'fail' : 'error',
+      message: err.message,
+    })
+  } else {
+    console.error('ERROR 💥', err)
+    res.status(500).json({
+      status: 'error',
+      message: 'Something went very wrong!',
+    })
+  }
 }
 
 export const globalErrorHandler = (
@@ -17,11 +43,8 @@ export const globalErrorHandler = (
   res: Response,
   next: NextFunction,
 ) => {
-  console.log(err)
-
-  res.status(err.status || 500).json({
-    status: err.hasOwnProperty('status') ? 'fail' : 'error',
-    message: err.message,
-  })
+  if (err.name === 'CastError') err = handleCastErrorDB(err)
+  if (err.name === 'ValidationError') err = handleValidationErrorDB(err)
+  sendError(err, res)
   next()
 }
