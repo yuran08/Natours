@@ -116,26 +116,35 @@ tourSchema.pre('save', function (next: HookNextFunction) {
   next()
 })
 
-tourSchema.pre(/^find/, function (this: QueryWithHelpers<any, any>, next: HookNextFunction) {
-  this.find({ secretTour: { $ne: true } })
-  next()
-})
+tourSchema.pre(
+  /^find/,
+  function (this: QueryWithHelpers<any, any>, next: HookNextFunction) {
+    this.find({ secretTour: { $ne: true } })
+    next()
+  },
+)
 
 tourSchema.post(/^find/, function (docs, next: HookNextFunction) {
   console.log(docs)
   next()
 })
 
-tourSchema.pre('aggregate', function (this: Aggregate<Object>, next: HookNextFunction) {
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } })
-  next()
-})
+tourSchema.pre(
+  'aggregate',
+  function (this: Aggregate<Object>, next: HookNextFunction) {
+    this.pipeline().unshift({ $match: { secretTour: { $ne: true } } })
+    next()
+  },
+)
 
 tourSchema.post('aggregate', function (docs, next: HookNextFunction) {
   console.log(docs)
   next()
 })
 
-const Tour = model<ITour, Model<ITour>, SchemaTypeOptions<any>>('Tour', tourSchema)
+const Tour = model<ITour, Model<ITour>, SchemaTypeOptions<any>>(
+  'Tour',
+  tourSchema,
+)
 
 export default Tour
