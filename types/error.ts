@@ -1,9 +1,12 @@
 export class AppError extends Error {
   status: number
   isOperational: boolean
+  code?: number
   path?: string
   value?: string
   errors?: any
+  keyPattern?: object
+  keyValue?: object
 
   constructor(status: number, message: string) {
     super(message)

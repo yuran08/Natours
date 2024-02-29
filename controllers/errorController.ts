@@ -16,6 +16,14 @@ const handleCastErrorDB = (err: AppError) => {
   return new AppError(400, message)
 }
 
+const handleDuplicateFieldsDB = (err: AppError) => {
+  const key = Object.keys({ ...err.keyPattern })[0]
+  const value = Object.values({ ...err.keyValue })[0]
+
+  const message = `Duplicate field '${key}': '${value}'. Please use another value!`
+  return new AppError(400, message)
+}
+
 const handleValidationErrorDB = (err: AppError) => {
   const errors = Object.values(err.errors).map((el: any) => el.message)
   const message = `Invalid input data. ${errors.join('. ')}`
@@ -29,10 +37,10 @@ const sendError = (err: AppError, res: Response) => {
       message: err.message,
     })
   } else {
-    console.error('ERROR 💥', err)
     res.status(500).json({
       status: 'error',
       message: 'Something went very wrong!',
+      err,
     })
   }
 }
@@ -45,6 +53,7 @@ export const globalErrorHandler = (
 ) => {
   if (err.name === 'CastError') err = handleCastErrorDB(err)
   if (err.name === 'ValidationError') err = handleValidationErrorDB(err)
+  if (err.code === 11000) err = handleDuplicateFieldsDB(err)
   sendError(err, res)
   next()
 }
