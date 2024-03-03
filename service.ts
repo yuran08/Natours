@@ -20,6 +20,13 @@ mongoose
   .catch(() => console.log('error !!!'))
 
 const port = process.env.PORT
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`app run for port ${port}`)
+})
+
+process.on('uncaughtException', err => {
+  console.log(err.name, err.message)
+  server.close(() => {
+    process.exit(1)
+  })
 })
