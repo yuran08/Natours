@@ -8,7 +8,7 @@ import validator from 'validator'
 import bcrypt from 'bcryptjs'
 const { Schema, model } = mongoose
 
-interface IUser {
+export interface IUser {
   name: string
   email: string
   photo: string

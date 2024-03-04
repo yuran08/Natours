@@ -10,6 +10,7 @@ export const getAllUser = catchError(async (req, res) => {
     .paginate()
     .result()
 
+  console.log((req as any).user)
   res.status(200).json({
     status: 'success',
     data: {

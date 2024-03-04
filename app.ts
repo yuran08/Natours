@@ -3,6 +3,7 @@ import morgan from 'morgan'
 import dotenv from 'dotenv'
 import tourRouter from './routes/tourRoutes.js'
 import userRoute from './routes/userRoutes.js'
+import { protect } from './controllers/authController.js'
 import {
   requestUrlError,
   globalErrorHandler,
@@ -15,6 +16,7 @@ const app: express.Application = express()
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'))
 }
+app.use(protect)
 app.use(express.json()) //midleware to get req body
 app.use('/api/v1/tours', tourRouter)
 app.use('/api/v1/users', userRoute)
