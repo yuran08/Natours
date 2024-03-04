@@ -17,7 +17,7 @@ mongoose
     useFindAndModify: false,
   })
   .then(() => console.log('MongoDB Connection Succeeded.'))
-  .catch(() => console.log('error !!!'))
+  .catch(() => console.log('MongoDB Connection error !!!'))
 
 const port = process.env.PORT
 const server = app.listen(port, () => {
@@ -25,7 +25,7 @@ const server = app.listen(port, () => {
 })
 
 process.on('uncaughtException', err => {
-  console.log(err.name, err.message)
+  console.log(err.name, err.message, 'service.js !!!')
   server.close(() => {
     process.exit(1)
   })

@@ -34,6 +34,9 @@ export default class {
     return this
   }
 
+  /**
+   * GraphQl
+   */
   limitFields() {
     if (this.queryString.fields) {
       const fields = this.queryString.fields.split(',').join(' ')
@@ -53,5 +56,12 @@ export default class {
     this.query = this.query.skip(skip).limit(limit)
 
     return this
+  }
+
+  /**
+   * @returns 查询数据对象
+   */
+  result() {
+    return this.query
   }
 }

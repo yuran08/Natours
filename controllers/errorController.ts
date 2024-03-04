@@ -30,17 +30,19 @@ const handleValidationErrorDB = (err: AppError) => {
   return new AppError(400, message)
 }
 
-const sendError = (err: AppError, res: Response) => {
+const sendError = (err: AppError & Error, res: Response) => {
   if (err.isOperational) {
     res.status(err.status).json({
       status: err.hasOwnProperty('status') ? 'fail' : 'error',
       message: err.message,
     })
   } else {
+    console.log(err, 'no Operational Err !!!')
+
     res.status(500).json({
       status: 'error',
       message: 'Something went very wrong!',
-      err,
+      err: err.stack,
     })
   }
 }
