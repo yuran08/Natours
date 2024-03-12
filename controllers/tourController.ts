@@ -1,9 +1,13 @@
 import Tour from '../models/tourModel.js'
-import Query from '../utils/query.js'
 import { NextFunction, Request, Response, RequestHandler } from 'express'
 import catchError from '../utils/catchError.js'
-import { AppError } from '../types/error.js'
-import { StatusCodes } from 'http-status-codes'
+import {
+  deleteOne,
+  createOne,
+  updateOne,
+  getOne,
+  getAll,
+} from './handleFactory.js'
 
 // middleware
 export const aliasPerformTour: RequestHandler = (
@@ -19,58 +23,11 @@ export const aliasPerformTour: RequestHandler = (
 }
 
 // controller
-export const getAllTour = catchError(async (req, res) => {
-  const query = new Query(Tour.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate()
-
-  const tours = await query.query
-
-  res.status(200).json({
-    status: 'success',
-    total: tours.length,
-    data: tours,
-  })
-})
-
-export const createTour = catchError(async (req, res) => {
-  const newTour = await Tour.create(req.body)
-  res.status(200).json({
-    status: 'success',
-    data: newTour,
-  })
-})
-
-export const getTour = catchError(async (req, res) => {
-  const tour = await Tour.findById(req.params.id)
-  if (!tour) throw new AppError(StatusCodes.BAD_REQUEST, 'unexist tour!')
-  res.status(200).json({
-    status: 'success',
-    data: tour,
-  })
-})
-
-export const updateTour = catchError(async (req, res) => {
-  const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-  })
-  if (!tour) throw new AppError(StatusCodes.BAD_REQUEST, 'unexist tour!')
-  res.status(200).json({
-    status: 'success',
-    data: tour,
-  })
-})
-
-export const deleteTour = catchError(async (req, res) => {
-  const tour = await Tour.findByIdAndDelete(req.params.id)
-  if (!tour) throw new AppError(StatusCodes.BAD_REQUEST, 'unexist tour!')
-
-  res.status(200).json({
-    status: 'success',
-  })
-})
+export const getTour = getOne(Tour)
+export const getAllTour = getAll(Tour)
+export const updateTour = updateOne(Tour)
+export const createTour = createOne(Tour)
+export const deleteTour = deleteOne(Tour)
 
 export const getTourStatus = catchError(async (req, res) => {
   const status = await Tour.aggregate([

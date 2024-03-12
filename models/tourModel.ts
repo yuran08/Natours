@@ -125,7 +125,6 @@ tourSchema.pre(
 )
 
 tourSchema.post(/^find/, function (docs, next: HookNextFunction) {
-  console.log(docs)
   next()
 })
 
@@ -138,7 +137,6 @@ tourSchema.pre(
 )
 
 tourSchema.post('aggregate', function (docs, next: HookNextFunction) {
-  console.log(docs)
   next()
 })
 

@@ -2,6 +2,13 @@ import { AppError } from '../types/error.js'
 import User from '../models/userModal.js'
 import catchError from '../utils/catchError.js'
 import Query from '../utils/query.js'
+import {
+  deleteOne,
+  createOne,
+  updateOne,
+  getOne,
+  getAll,
+} from './handleFactory.js'
 
 const filterObj = (obj: { [key: string]: any }, ...allowedFields: string[]) => {
   let newObj: { [key: string]: any } = {}
@@ -11,22 +18,9 @@ const filterObj = (obj: { [key: string]: any }, ...allowedFields: string[]) => {
   return newObj
 }
 
-export const getAllUser = catchError(async (req, res) => {
-  const users = await new Query(User.find(), req.params)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate()
-    .result()
-
-  console.log((req as any).user)
-  res.status(200).json({
-    status: 'success',
-    data: {
-      users,
-    },
-  })
-})
+export const getUser = getOne(User)
+export const getAllUser = getAll(User)
+export const deleteUser = deleteOne(User)
 
 export const updateMe = catchError(async (req, res) => {
   // 1) Create error if user POSTs password data
@@ -41,8 +35,6 @@ export const updateMe = catchError(async (req, res) => {
   const filteredBody = filterObj(req.body, 'name', 'email')
 
   // 3) Update user document
-  console.log(filteredBody, req.body)
-
   const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
     new: true,
     runValidators: true,
