@@ -95,6 +95,7 @@ export const protect = catchError(async (req, res, next) => {
       'User recently changed password! Please log in again.',
     )
   }
-  ;(req as any).user = user
+
+  req.user = user
   next()
 })
