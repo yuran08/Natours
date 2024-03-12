@@ -16,7 +16,7 @@ const app: express.Application = express()
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'))
 }
-app.use(protect)
+// app.use(protect)
 app.use(express.json()) //midleware to get req body
 app.use('/api/v1/tours', tourRouter)
 app.use('/api/v1/users', userRoute)

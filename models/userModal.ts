@@ -3,6 +3,7 @@ import mongoose, {
   HookNextFunction,
   SchemaDefinition,
   Document,
+  QueryWithHelpers,
 } from 'mongoose'
 import validator from 'validator'
 import bcrypt from 'bcryptjs'
@@ -14,17 +15,28 @@ export interface IUser {
   photo: string
   password: string
   passwordComfirm: string | undefined
+  passwordChangedAt: Date
 }
 
 interface UserMethod {
+  /**
+   * @param password 用户提供密码
+   * @param userPassword 用户正确密码
+   * @returns 是否正确
+   */
   checkPassword(password: string, userPassword: string): Promise<boolean>
+  /**
+   * 密码是否更改
+   * @param JWTTimestamp JWT生成时间
+   */
+  changedPasswordAfter(JWTTimestamp: number): boolean
 }
 
 const wrongMessage = (property: keyof IUser) => `A user must have ${property} !`
 const wrongValidMessage = (property: keyof IUser) =>
   `Please provide a valid ${property} !`
 
-const userShcema = new Schema<IUser, Model<IUser>, SchemaDefinition<IUser>>({
+const userSchema = new Schema<IUser, Model<IUser>, SchemaDefinition<IUser>>({
   name: {
     type: String,
     required: [true, wrongMessage('name')],
@@ -52,9 +64,10 @@ const userShcema = new Schema<IUser, Model<IUser>, SchemaDefinition<IUser>>({
       message: 'Passwords are not the same!',
     },
   },
+  passwordChangedAt: Date,
 })
 
-userShcema.pre('save', async function (next: HookNextFunction) {
+userSchema.pre('save', async function (next: HookNextFunction) {
   if (!this.isModified('password')) return next()
 
   this.password = await bcrypt.hash(this.password, 12)
@@ -62,13 +75,40 @@ userShcema.pre('save', async function (next: HookNextFunction) {
   next()
 })
 
-userShcema.methods.checkPassword = async function (
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') || this.isNew) return next()
+
+  this.passwordChangedAt = new Date(Date.now() - 1000)
+
+  next()
+})
+
+
+userSchema.methods.checkPassword = async function (
   password: string,
   userPassword: string,
 ) {
   return await bcrypt.compare(password, userPassword)
 }
 
-const User = model<IUser, Model<any, any, UserMethod>>('user', userShcema)
+
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp: number) {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = parseInt(
+      (this.passwordChangedAt.getTime() / 1000).toString(),
+      10,
+    )
+
+    return JWTTimestamp < changedTimestamp
+  }
+
+  // False means NOT changed
+  return false
+}
+
+const User = model<IUser, Model<IUser, QueryWithHelpers<any, any>, UserMethod>>(
+  'user',
+  userSchema,
+)
 
 export default User

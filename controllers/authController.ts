@@ -70,9 +70,13 @@ export const protect = catchError(async (req, res, next) => {
       'You are not logged in! Please log in to get access.',
     )
   }
-  let userId
+
+  let userId, time
   await verifyToken(token)
-    .then(res => (userId = res.id))
+    .then(res => {
+      userId = res.id
+      time = res.iat
+    })
     .catch(err => {
       throw err
     })
@@ -85,6 +89,12 @@ export const protect = catchError(async (req, res, next) => {
     )
   }
 
+  if (time && user.changedPasswordAfter(time)) {
+    throw new AppError(
+      401,
+      'User recently changed password! Please log in again.',
+    )
+  }
   ;(req as any).user = user
   next()
 })
