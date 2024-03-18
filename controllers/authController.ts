@@ -1,9 +1,12 @@
-import User from '../models/userModal.js'
+import User, { IUser } from '../models/userModal.js'
 import catchError from '../utils/catchError.js'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import { AppError } from '../types/error.js'
-import { NextFunction } from 'express'
-
+import { sendEmail } from '../utils/email.js'
+import crypto from 'node:crypto'
+import { CookieOptions, Response } from 'express'
+import { Document } from 'mongoose'
+import { showRemovedFieldsObj } from '../utils/utils.js'
 interface Decoded extends JwtPayload {
   id: string
 }
@@ -25,6 +28,33 @@ const verifyToken = (token: string): Promise<Decoded> => {
   })
 }
 
+const createSendToken = (
+  user: IUser & Document<any, any, IUser>,
+  statusCode: number,
+  res: Response,
+) => {
+  const token = getToken(user._id)
+  const cookieOptions: CookieOptions = {
+    expires: new Date(
+      Date.now() +
+        Number(process.env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000,
+    ),
+    httpOnly: true,
+  }
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true
+
+  res.cookie('jwt', token, cookieOptions)
+
+  const data = showRemovedFieldsObj(user, 'password')
+  res.status(statusCode).json({
+    status: 'success',
+    token,
+    data: {
+      user: data,
+    },
+  })
+}
+
 export const signup = catchError(async (req, res) => {
   const user = await User.create({
     name: req.body.name,
@@ -33,15 +63,7 @@ export const signup = catchError(async (req, res) => {
     passwordComfirm: req.body.passwordComfirm,
   })
 
-  const token = getToken(user._id)
-
-  res.status(201).json({
-    status: 'success',
-    token,
-    data: {
-      user,
-    },
-  })
+  createSendToken(user, 201, res)
 })
 
 export const login = catchError(async (req, res) => {
@@ -55,15 +77,16 @@ export const login = catchError(async (req, res) => {
   if (!(await user.checkPassword(password, user.password)))
     throw new AppError(401, 'Incorrect password !')
 
-  const token = getToken(user._id)
-  res.status(200).json({
-    status: 'success',
-    token,
-  })
+  createSendToken(user, 200, res)
 })
 
 export const protect = catchError(async (req, res, next) => {
-  const token = req.headers.token as string
+  let token = req.headers.authorization as string
+
+  if (token && token.startsWith('Bearer')) {
+    token = token.split(' ')[1]
+  }
+
   if (!token) {
     throw new AppError(
       401,
@@ -98,4 +121,70 @@ export const protect = catchError(async (req, res, next) => {
 
   req.user = user
   next()
+})
+
+export const permissionCheck = (...roles: string[]) => {
+  return catchError(async (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      throw new AppError(
+        403,
+        'You do not have permission to perform this action.',
+      )
+    }
+    next()
+  })
+}
+
+export const forgotPassword = catchError(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email })
+  if (!user) {
+    throw new AppError(404, 'There is no user with email address.')
+  }
+
+  const resetToken = user.createPasswordResetToken()
+  await user.save({ validateBeforeSave: false })
+
+  const resetURL = `${req.protocol}://${req.get(
+    'host',
+  )}/api/v1/users/resetPassword/${resetToken}`
+  const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.\nIf you didn't forget your password, please ignore this email!`
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: 'Your password reset token for Natours (valid for 10 min)',
+      message: message,
+    })
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Token sent to email!',
+    })
+  } catch (error) {
+    throw new AppError(500, 'send email error !!!')
+  }
+})
+
+export const resetPassword = catchError(async (req, res, next) => {
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(req.params.token)
+    .digest('hex')
+
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  })
+
+  if (!user) {
+    throw new AppError(400, 'Token is invalid or has expired')
+  }
+
+  user.password = req.body.password
+  user.passwordComfirm = req.body.passwordComfirm
+  user.passwordResetToken = undefined
+  user.passwordResetExpires = undefined
+  await user.save()
+
+  createSendToken(user, 200, res)
 })

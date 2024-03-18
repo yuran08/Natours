@@ -4,6 +4,7 @@ import mongoose, {
   QueryWithHelpers,
   HookNextFunction,
   Aggregate,
+  SchemaDefinition,
 } from 'mongoose'
 import slugify from 'slugify'
 import validator from 'validator'
@@ -24,9 +25,10 @@ interface ITour {
   createAt: Date
   slug: string
   secretTour: boolean
+  priceDiscount: number
 }
 
-const tourSchema = new Schema<ITour, Model<ITour>, SchemaTypeOptions<any>>(
+const tourSchema = new Schema<ITour, Model<ITour>, SchemaDefinition<ITour>>(
   {
     name: {
       type: String,
@@ -140,7 +142,7 @@ tourSchema.post('aggregate', function (docs, next: HookNextFunction) {
   next()
 })
 
-const Tour = model<ITour, Model<ITour>, SchemaTypeOptions<any>>(
+const Tour = model<ITour, Model<ITour, QueryWithHelpers<any, any>>>(
   'Tour',
   tourSchema,
 )

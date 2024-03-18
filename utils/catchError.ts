@@ -3,7 +3,7 @@ import { IUser } from 'models/userModal.js'
 
 interface MyRequest extends Request<any, any, MyBody> {
   customProperty: string
-  user: { [key: string]: any }
+  user: MyBody
 }
 interface MyBody extends IUser {
   name: string

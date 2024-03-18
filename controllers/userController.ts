@@ -1,7 +1,7 @@
 import { AppError } from '../types/error.js'
 import User from '../models/userModal.js'
 import catchError from '../utils/catchError.js'
-import Query from '../utils/query.js'
+import { showObjAllowedFields } from '../utils/utils.js'
 import {
   deleteOne,
   createOne,
@@ -9,14 +9,6 @@ import {
   getOne,
   getAll,
 } from './handleFactory.js'
-
-const filterObj = (obj: { [key: string]: any }, ...allowedFields: string[]) => {
-  let newObj: { [key: string]: any } = {}
-  Object.keys(obj).forEach(el => {
-    if (allowedFields.includes(el)) newObj[el] = obj[el]
-  })
-  return newObj
-}
 
 export const getUser = getOne(User)
 export const getAllUser = getAll(User)
@@ -32,7 +24,7 @@ export const updateMe = catchError(async (req, res) => {
   }
 
   // 2) Filtered out unwanted fields names that are not allowed to be updated
-  const filteredBody = filterObj(req.body, 'name', 'email')
+  const filteredBody = showObjAllowedFields(req.body, 'name', 'email')
 
   // 3) Update user document
   const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {

@@ -4,7 +4,7 @@ import { AppError } from '../types/error.js'
 import mongoose, { Model } from 'mongoose'
 import Query from '../utils/query.js'
 
-export const deleteOne = (model: Model<any>) =>
+export const deleteOne = (model: Model<any, any, any>) =>
   catchError(async (req, res) => {
     const doc = await model.findByIdAndDelete(req.params.id)
 

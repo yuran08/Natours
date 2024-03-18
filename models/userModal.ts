@@ -7,15 +7,21 @@ import mongoose, {
 } from 'mongoose'
 import validator from 'validator'
 import bcrypt from 'bcryptjs'
+import crypto from 'node:crypto'
 const { Schema, model } = mongoose
 
 export interface IUser {
+  id: string
   name: string
   email: string
   photo: string
   password: string
   passwordComfirm: string | undefined
   passwordChangedAt: Date
+  active: boolean
+  role: 'user' | 'guide' | 'admin'
+  passwordResetToken: string | undefined
+  passwordResetExpires: number | Date | undefined
 }
 
 interface UserMethod {
@@ -30,6 +36,10 @@ interface UserMethod {
    * @param JWTTimestamp JWT生成时间
    */
   changedPasswordAfter(JWTTimestamp: number): boolean
+  /**
+   * 重置密码验证码
+   */
+  createPasswordResetToken(): string
 }
 
 const wrongMessage = (property: keyof IUser) => `A user must have ${property} !`
@@ -48,6 +58,11 @@ const userSchema = new Schema<IUser, Model<IUser>, SchemaDefinition<IUser>>({
     validate: [validator.isEmail, wrongValidMessage('email')],
   },
   photo: String,
+  role: {
+    type: String,
+    enum: ['user', 'guide', 'admin'],
+    default: 'user',
+  },
   password: {
     type: String,
     required: [true, wrongMessage('password')],
@@ -65,6 +80,13 @@ const userSchema = new Schema<IUser, Model<IUser>, SchemaDefinition<IUser>>({
     },
   },
   passwordChangedAt: Date,
+  passwordResetToken: String,
+  passwordResetExpires: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
 })
 
 userSchema.pre('save', async function (next: HookNextFunction) {
@@ -83,14 +105,12 @@ userSchema.pre('save', function (next) {
   next()
 })
 
-
 userSchema.methods.checkPassword = async function (
   password: string,
   userPassword: string,
 ) {
   return await bcrypt.compare(password, userPassword)
 }
-
 
 userSchema.methods.changedPasswordAfter = function (JWTTimestamp: number) {
   if (this.passwordChangedAt) {
@@ -106,9 +126,24 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp: number) {
   return false
 }
 
-const User = model<IUser, Model<IUser, QueryWithHelpers<any, any>, UserMethod>>(
-  'user',
-  userSchema,
-)
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex')
+
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex')
+
+  console.log({ resetToken }, this.passwordResetToken)
+
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000
+
+  return resetToken
+}
+
+const User = model<
+  IUser,
+  Model<IUser, QueryWithHelpers<IUser, any>, UserMethod>
+>('user', userSchema)
 
 export default User
