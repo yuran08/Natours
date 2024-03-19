@@ -6,6 +6,7 @@ import {
   signup,
   forgotPassword,
   resetPassword,
+  updateMyPassword,
 } from '../controllers/authController.js'
 import {
   deleteUser,
@@ -18,7 +19,8 @@ const userRoute: Router = express.Router()
 userRoute.post('/signup', signup)
 userRoute.post('/login', login)
 userRoute.post('/forgotPassword', forgotPassword)
-userRoute.post('/resetPassword/:token', resetPassword)
+userRoute.patch('/resetPassword/:token', resetPassword)
+userRoute.patch('/uodatePassword', protect, updateMyPassword)
 
 userRoute.patch('/updateMe', protect, updateMe)
 

@@ -34,24 +34,25 @@ const createSendToken = (
   res: Response,
 ) => {
   const token = getToken(user._id)
-  const cookieOptions: CookieOptions = {
-    expires: new Date(
-      Date.now() +
-        Number(process.env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000,
-    ),
-    httpOnly: true,
+  // const cookieOptions: CookieOptions = {
+  //   expires: new Date(
+  //     Date.now() +
+  //       Number(process.env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000,
+  //   ),
+  //   httpOnly: true,
+  // }
+  // if (process.env.NODE_ENV === 'production') cookieOptions.secure = true
+
+  // res.cookie('jwt', token, cookieOptions)
+  const data = {
+    ...user.toObject(),
+    password: undefined,
   }
-  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true
 
-  res.cookie('jwt', token, cookieOptions)
-
-  const data = showRemovedFieldsObj(user, 'password')
   res.status(statusCode).json({
     status: 'success',
     token,
-    data: {
-      user: data,
-    },
+    data,
   })
 }
 
@@ -174,16 +175,39 @@ export const resetPassword = catchError(async (req, res, next) => {
   const user = await User.findOne({
     passwordResetToken: hashedToken,
     passwordResetExpires: { $gt: Date.now() },
-  })
+  }).select('+password')
 
   if (!user) {
     throw new AppError(400, 'Token is invalid or has expired')
+  }
+  if (await user.checkPassword(req.body.password, user.password)) {
+    throw new AppError(400, 'password have no change.')
   }
 
   user.password = req.body.password
   user.passwordComfirm = req.body.passwordComfirm
   user.passwordResetToken = undefined
   user.passwordResetExpires = undefined
+  await user.save()
+
+  createSendToken(user, 200, res)
+})
+
+export const updateMyPassword = catchError(async (req, res) => {
+  const user = await User.findById(req.user.id).select('+password')
+
+  if (
+    !req.body.passwordCurrent ||
+    !(await user.checkPassword(req.body.passwordCurrent, user.password))
+  ) {
+    throw new AppError(400, 'Your current password is wrong.')
+  }
+  if (await user.checkPassword(req.body.password, user.password)) {
+    throw new AppError(400, 'password have no change.')
+  }
+
+  user.password = req.body.password
+  user.passwordComfirm = req.body.passwordComfirm
   await user.save()
 
   createSendToken(user, 200, res)

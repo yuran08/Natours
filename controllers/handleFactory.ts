@@ -49,7 +49,7 @@ export const createOne = (model: Model<any>) =>
     })
   })
 
-export const getOne = (model: Model<any>) =>
+export const getOne = (model: Model<any, any, any>) =>
   catchError(async (req, res) => {
     const doc = await model.findById(req.params.id)
 
@@ -65,7 +65,7 @@ export const getOne = (model: Model<any>) =>
     })
   })
 
-export const getAll = (model: Model<any>) =>
+export const getAll = (model: Model<any, any, any>) =>
   catchError(async (req, res) => {
     const doc = await new Query(model.find(), req.query)
       .filter()

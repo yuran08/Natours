@@ -22,6 +22,7 @@ export interface IUser {
   role: 'user' | 'guide' | 'admin'
   passwordResetToken: string | undefined
   passwordResetExpires: number | Date | undefined
+  passwordCurrent?: string
 }
 
 interface UserMethod {
