@@ -44,15 +44,11 @@ const createSendToken = (
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true
 
   res.cookie('jwt', token, cookieOptions)
-  const data = {
-    ...user.toObject(),
-    password: undefined,
-  }
 
   res.status(statusCode).json({
     status: 'success',
     token,
-    data,
+    data: user.toObject(),
   })
 }
 

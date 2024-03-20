@@ -52,48 +52,59 @@ const userSchema = new Schema<
   Model<IUser>,
   SchemaDefinition<IUser>,
   QueryWithHelpers<IUser, IUser>
->({
-  name: {
-    type: String,
-    required: [true, wrongMessage('name')],
-  },
-  email: {
-    type: String,
-    required: [true, wrongMessage('email')],
-    unique: true,
-    validate: [validator.isEmail, wrongValidMessage('email')],
-  },
-  photo: String,
-  role: {
-    type: String,
-    enum: ['user', 'guide', 'admin'],
-    default: 'user',
-  },
-  password: {
-    type: String,
-    required: [true, wrongMessage('password')],
-    minlength: 8,
-    select: false,
-  },
-  passwordComfirm: {
-    type: String,
-    required: [true, wrongMessage('passwordComfirm')],
-    validate: {
-      validator: function (this: IUser, value: string) {
-        return this.password === value
+>(
+  {
+    name: {
+      type: String,
+      required: [true, wrongMessage('name')],
+    },
+    email: {
+      type: String,
+      required: [true, wrongMessage('email')],
+      unique: true,
+      validate: [validator.isEmail, wrongValidMessage('email')],
+    },
+    photo: String,
+    role: {
+      type: String,
+      enum: ['user', 'guide', 'admin'],
+      default: 'user',
+    },
+    password: {
+      type: String,
+      required: [true, wrongMessage('password')],
+      minlength: 8,
+      select: false,
+    },
+    passwordComfirm: {
+      type: String,
+      required: [true, wrongMessage('passwordComfirm')],
+      validate: {
+        validator: function (this: IUser, value: string) {
+          return this.password === value
+        },
+        message: 'Passwords are not the same!',
       },
-      message: 'Passwords are not the same!',
+    },
+    passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordResetExpires: Date,
+    active: {
+      type: Boolean,
+      default: true,
+      select: false,
     },
   },
-  passwordChangedAt: Date,
-  passwordResetToken: String,
-  passwordResetExpires: Date,
-  active: {
-    type: Boolean,
-    default: true,
-    select: false,
+  {
+    toObject: {
+      transform: (doc, ret) => {
+        delete ret.password
+        delete ret.__v
+        return ret
+      },
+    },
   },
-})
+)
 
 userSchema.pre('save', async function (next: HookNextFunction) {
   if (!this.isModified('password')) return next()

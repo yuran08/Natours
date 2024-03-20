@@ -5,9 +5,11 @@ import mongoose, {
   HookNextFunction,
   Aggregate,
   SchemaDefinition,
+  ObjectId,
 } from 'mongoose'
 import slugify from 'slugify'
 import validator from 'validator'
+import User from './userModal.js'
 const { Schema, model } = mongoose
 interface ITour {
   name: string
@@ -26,6 +28,9 @@ interface ITour {
   slug: string
   secretTour: boolean
   priceDiscount: number
+  startLocation: object
+  locations: object[]
+  guides: ObjectId[]
 }
 
 const tourSchema = new Schema<ITour, Model<ITour>, SchemaDefinition<ITour>>(
@@ -103,6 +108,36 @@ const tourSchema = new Schema<ITour, Model<ITour>, SchemaDefinition<ITour>>(
       type: Boolean,
       default: false,
     },
+    startLocation: {
+      // GeoJSON
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
+    },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
+    guides: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: User,
+      },
+    ],
   },
   {
     toJSON: { virtuals: true },
@@ -118,10 +153,27 @@ tourSchema.pre('save', function (next: HookNextFunction) {
   next()
 })
 
+// tourSchema.pre('save', async function (next: HookNextFunction) {
+//   const guidesPromise = this.guides.map(id => User.findById(id))
+//   this.guides = await Promise.all(guidesPromise)
+//   next()
+// })
+
 tourSchema.pre(
   /^find/,
   function (this: QueryWithHelpers<any, any>, next: HookNextFunction) {
     this.find({ secretTour: { $ne: true } })
+    next()
+  },
+)
+
+tourSchema.pre(
+  /^find/,
+  function (this: QueryWithHelpers<any, any>, next: HookNextFunction) {
+    this.populate({
+      path: 'guides',
+      select: '-__v -passwordChangedAt',
+    })
     next()
   },
 )
