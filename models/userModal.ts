@@ -47,7 +47,12 @@ const wrongMessage = (property: keyof IUser) => `A user must have ${property} !`
 const wrongValidMessage = (property: keyof IUser) =>
   `Please provide a valid ${property} !`
 
-const userSchema = new Schema<IUser, Model<IUser>, SchemaDefinition<IUser>>({
+const userSchema = new Schema<
+  IUser,
+  Model<IUser>,
+  SchemaDefinition<IUser>,
+  QueryWithHelpers<IUser, IUser>
+>({
   name: {
     type: String,
     required: [true, wrongMessage('name')],
@@ -103,6 +108,11 @@ userSchema.pre('save', function (next) {
 
   this.passwordChangedAt = new Date(Date.now() - 1000)
 
+  next()
+})
+
+userSchema.pre(/^find/, function (next) {
+  this.find({ active: { $ne: false } })
   next()
 })
 

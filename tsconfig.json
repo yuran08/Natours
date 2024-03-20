@@ -19,7 +19,8 @@
     "skipLibCheck": true,
     "experimentalDecorators": true,
     "esModuleInterop": true,
-    "strict": true
+    "strict": true,
+    "typeRoots": ["./node_modules/@types"]
   },
   "include": ["*", "dev-data", "dev-data/data"],
   "exclude": ["node_modules", "build", "dist"],
