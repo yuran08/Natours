@@ -13,6 +13,9 @@ import {
   getAllUser,
   updateMe,
   deleteMe,
+  getMe,
+  getUser,
+  updateUser,
 } from '../controllers/userController.js'
 
 const userRoute: Router = express.Router()
@@ -21,13 +24,20 @@ userRoute.post('/signup', signup)
 userRoute.post('/login', login)
 userRoute.post('/forgotPassword', forgotPassword)
 userRoute.patch('/resetPassword/:token', resetPassword)
-userRoute.patch('/uodatePassword', protect, updateMyPassword)
-userRoute.delete('/deleteMe', protect, deleteMe)
 
-userRoute.patch('/updateMe', protect, updateMe)
+userRoute.use(protect)
 
-userRoute.route('/').get(protect, getAllUser)
+userRoute.get('/me', getMe, getUser)
+userRoute.patch('/uodateMyPassword', updateMyPassword)
+userRoute.delete('/deleteMe', deleteMe)
+userRoute.patch('/updateMe', updateMe)
 
-userRoute.route('/:id').delete(protect, permissionCheck('admin'), deleteUser)
+userRoute.route('/').get(getAllUser)
+
+userRoute
+  .route('/:id')
+  .get(getUser)
+  .delete(permissionCheck('admin'), deleteUser)
+  .patch(permissionCheck('admin'), updateUser)
 
 export default userRoute

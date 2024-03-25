@@ -13,6 +13,12 @@ import {
 export const getUser = getOne(User)
 export const getAllUser = getAll(User)
 export const deleteUser = deleteOne(User)
+export const updateUser = updateOne(User)
+
+export const getMe = catchError(async (req, res, next) => {
+  req.params.id = req.user.id
+  next()
+})
 
 export const updateMe = catchError(async (req, res) => {
   // 1) Create error if user POSTs password data

@@ -120,7 +120,8 @@ export const protect = catchError(async (req, res, next) => {
   next()
 })
 
-export const permissionCheck = (...roles: string[]) => {
+type TRole = 'admin' | 'user' | 'guide'
+export const permissionCheck = (...roles: TRole[]) => {
   return catchError(async (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       throw new AppError(
