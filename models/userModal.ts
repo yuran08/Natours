@@ -18,7 +18,7 @@ export interface IUser {
   passwordComfirm: string | undefined
   passwordChangedAt: Date
   active: boolean
-  role: 'user' | 'guide' | 'admin'
+  role: 'user' | 'guide' | 'admin' | 'lead-guide'
   passwordResetToken: string | undefined
   passwordResetExpires: number | Date | undefined
   passwordCurrent?: string
