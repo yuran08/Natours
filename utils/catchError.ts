@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express-serve-static-core'
+import { ITour } from 'models/tourModel.js'
 import { IUser } from 'models/userModal.js'
 
 interface MyRequest extends Request<any, any, MyBody> {
@@ -6,6 +7,9 @@ interface MyRequest extends Request<any, any, MyBody> {
   user: MyBody
 }
 interface MyBody extends IUser {
+  id?: any
+  tour?: any
+  user?: any
   name: string
 }
 

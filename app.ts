@@ -10,8 +10,9 @@ import ExpressMongoSanitize from 'express-mongo-sanitize'
 import xss from 'xss-clean'
 import hpp from 'hpp'
 
-import tourRouter from './routes/tourRoutes.js'
+import tourRoute from './routes/tourRoutes.js'
 import userRoute from './routes/userRoutes.js'
+import reviewRoute from './routes/reviewRoutes.js'
 import {
   requestUrlError,
   globalErrorHandler,
@@ -67,8 +68,9 @@ app.use(
 app.use(express.static(`${__dirname}/public`))
 
 // 2) Routes
-app.use('/api/v1/tours', tourRouter)
+app.use('/api/v1/tours', tourRoute)
 app.use('/api/v1/users', userRoute)
+app.use('/api/v1/reviews', reviewRoute)
 
 app.all('*', requestUrlError)
 app.use(globalErrorHandler)

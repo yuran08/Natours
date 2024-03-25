@@ -6,7 +6,7 @@ import mongoose, {
   QueryWithHelpers,
   ObjectId,
 } from 'mongoose'
-import Tour from './tourModel'
+import Tour from './tourModel.js'
 import User from '../models/userModal.js'
 const { Schema, model } = mongoose
 
@@ -51,6 +51,20 @@ const reviewSchema = new Schema<
   {
     toObject: { virtuals: true },
     toJSON: { virtuals: true },
+  },
+)
+
+reviewSchema.pre(
+  /^find/,
+  function (this: QueryWithHelpers<any, any>, next: HookNextFunction) {
+    this.populate({
+      path: 'user',
+      select: 'name',
+    }).populate({
+      path: 'tour',
+      select: 'name',
+    })
+    next()
   },
 )
 

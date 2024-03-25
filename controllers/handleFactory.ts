@@ -3,6 +3,7 @@ import catchError from '../utils/catchError.js'
 import { AppError } from '../types/error.js'
 import mongoose, { Model } from 'mongoose'
 import Query from '../utils/query.js'
+import Tour from 'models/tourModel.js'
 
 export const deleteOne = (model: Model<any, any, any>) =>
   catchError(async (req, res) => {
@@ -31,9 +32,7 @@ export const updateOne = (model: Model<any, any, any>) =>
 
     res.status(200).json({
       status: 'success',
-      data: {
-        data: doc,
-      },
+      data: doc,
     })
   })
 
@@ -43,15 +42,15 @@ export const createOne = (model: Model<any>) =>
 
     res.status(200).json({
       status: 'success',
-      data: {
-        data: doc,
-      },
+      data: doc,
     })
   })
 
-export const getOne = (model: Model<any, any, any>) =>
+export const getOne = (model: Model<any, any, any>, pop?: { path: string }) =>
   catchError(async (req, res) => {
-    const doc = await model.findById(req.params.id)
+    let query = model.findById(req.params.id)
+    if (pop) query = query.populate(pop)
+    const doc = await query
 
     if (!doc) {
       throw new AppError(404, 'No document found with that ID')
@@ -59,15 +58,15 @@ export const getOne = (model: Model<any, any, any>) =>
 
     res.status(200).json({
       status: 'success',
-      data: {
-        data: doc,
-      },
+      data: doc,
     })
   })
 
 export const getAll = (model: Model<any, any, any>) =>
   catchError(async (req, res) => {
-    const doc = await new Query(model.find(), req.query)
+    let filter = {}
+    if (req.params.tourId) filter = { tour: req.params.tourId }
+    const doc = await new Query(model.find(filter), req.query)
       .filter()
       .limitFields()
       .sort()
@@ -77,8 +76,6 @@ export const getAll = (model: Model<any, any, any>) =>
     res.status(200).json({
       status: 'success',
       total: doc.length,
-      data: {
-        data: doc,
-      },
+      data: doc,
     })
   })

@@ -11,7 +11,7 @@ import slugify from 'slugify'
 import validator from 'validator'
 import User from './userModal.js'
 const { Schema, model } = mongoose
-interface ITour {
+export interface ITour {
   name: string
   price: number
   difficulty: 'easy' | 'medium' | 'difficult'
@@ -141,8 +141,15 @@ const tourSchema = new Schema<ITour, Model<ITour>, SchemaDefinition<ITour>>(
   },
   {
     toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   },
 )
+
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  localField: '_id',
+  foreignField: 'tour',
+})
 
 tourSchema.virtual('durationWeeks').get(function (this: ITour) {
   return (this.duration / 7).toFixed(2)

@@ -10,13 +10,17 @@ import {
   getMonthlyPlan,
 } from '../controllers/tourController.js'
 import { Router } from 'express-serve-static-core'
+import reviewRoute from './reviewRoutes.js'
 
-const tourRouter: Router = express.Router()
-tourRouter.route('/tourStatus').get(getTourStatus)
-tourRouter.route('/top-5-perform').get(aliasPerformTour, getAllTour)
-tourRouter.route('/monthly-plan/:year').get(getMonthlyPlan)
+const tourRoute: Router = express.Router()
 
-tourRouter.route('/').get(getAllTour).post(createTour)
-tourRouter.route('/:id').get(getTour).patch(updateTour).delete(deleteTour)
+tourRoute.use('/:tourId/reviews', reviewRoute)
 
-export default tourRouter
+tourRoute.route('/tourStatus').get(getTourStatus)
+tourRoute.route('/top-5-perform').get(aliasPerformTour, getAllTour)
+tourRoute.route('/monthly-plan/:year').get(getMonthlyPlan)
+
+tourRoute.route('/').get(getAllTour).post(createTour)
+tourRoute.route('/:id').get(getTour).patch(updateTour).delete(deleteTour)
+
+export default tourRoute

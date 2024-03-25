@@ -11,7 +11,6 @@ import crypto from 'node:crypto'
 const { Schema, model } = mongoose
 
 export interface IUser {
-  id: string
   name: string
   email: string
   photo: string

@@ -8,3 +8,15 @@ import {
   getOne,
   getAll,
 } from './handleFactory.js'
+
+export const setTourUserIds = catchError(async (req, res, next) => {
+  // Allow nested routes
+  if (!req.body.tour) req.body.tour = req.params.tourId
+  if (!req.body.user) req.body.user = req.user.id
+  next()
+})
+
+export const getReview = getOne(Review)
+export const getAllReview = getAll(Review)
+export const createReview = createOne(Review)
+export const deleteReview = deleteOne(Review)

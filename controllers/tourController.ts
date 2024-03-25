@@ -23,7 +23,7 @@ export const aliasPerformTour: RequestHandler = (
 }
 
 // controller
-export const getTour = getOne(Tour)
+export const getTour = getOne(Tour, { path: 'reviews' })
 export const getAllTour = getAll(Tour)
 export const updateTour = updateOne(Tour)
 export const createTour = createOne(Tour)
